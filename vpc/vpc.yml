@@ -1,0 +1,123 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "VPC"
+
+Parameters:
+
+  VPCCIDR:
+    Type: String
+  SubnetsPUB1CIDR:
+    Type: String
+  SubnetsPUB2CIDR:
+    Type: String
+  SubnetsPRV1CIDR:
+    Type: String
+  SubnetsPRV2CIDR:
+    Type: String
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VPCCIDR
+      EnableDnsSupport: "true"
+      EnableDnsHostnames: "true"
+      InstanceTenancy: default
+
+  InetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+
+  InetGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      InternetGatewayId: !Ref InetGateway
+      VpcId: !Ref VPC
+
+  SubnetsPUB1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: "ap-northeast-1a"
+      CidrBlock: !Ref SubnetsPUB1CIDR
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: public-subnet-1a
+
+  SubnetsPUB2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: "ap-northeast-1c"
+      CidrBlock: !Ref SubnetsPUB2CIDR
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: public-subnet-1c
+
+  SubnetsPRV1:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: "ap-northeast-1a"
+      CidrBlock: !Ref SubnetsPRV1CIDR
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: private-subnet-1a
+
+  SubnetsPRV2:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      AvailabilityZone: "ap-northeast-1c"
+      CidrBlock: !Ref SubnetsPRV2CIDR
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: private-subnet-1c
+
+  PublicRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+  
+  PublicDefaultRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InetGateway
+
+  SubnetsPUB1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetsPUB1
+      RouteTableId: !Ref PublicRouteTable
+
+  SubnetsPUB2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref SubnetsPUB2
+      RouteTableId: !Ref PublicRouteTable
+
+Outputs:
+  VPC:
+    Value: !Ref VPC
+    Export:
+      Name: VpcId
+  SubnetsPUB1:
+    Value: !Ref SubnetsPUB1
+    Export:
+      Name: SubnetsPUB1
+  SubnetsPUB2:
+    Value: !Ref SubnetsPUB2
+    Export:
+      Name: SubnetsPUB2
+  SubnetsPRV1:
+    Value: !Ref SubnetsPRV1
+    Export:
+      Name: SubnetsPRV1
+  SubnetsPRV2:
+    Value: !Ref SubnetsPRV2
+    Export:
+      Name: SubnetsPRV2

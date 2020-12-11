@@ -1,0 +1,22 @@
+[
+  {
+    "ParameterKey": "VPCCIDR",
+    "ParameterValue": "10.0.0.0/20"
+  },
+  {
+    "ParameterKey": "SubnetsPUB1CIDR",
+    "ParameterValue": "10.0.0.0/24"
+  },
+  {
+    "ParameterKey": "SubnetsPUB2CIDR",
+    "ParameterValue": "10.0.1.0/24"
+  },
+  {
+    "ParameterKey": "SubnetsPRV1CIDR",
+    "ParameterValue": "10.0.8.0/24"
+  },
+  {
+    "ParameterKey": "SubnetsPRV2CIDR",
+    "ParameterValue": "10.0.9.0/24"
+  }
+]

@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "ALB"
+
+Resources:
+  ALBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Enable HTTP"
+      VpcId: !ImportValue VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !ImportValue HTTPLocation
+
+  ApplicationLoadBalancer:
+    Type: "AWS::ElasticLoadBalancingV2::LoadBalancer"
+    Properties:
+      Subnets:
+        - !ImportValue SubnetsPUB1
+        - !ImportValue SubnetsPUB2
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+        
+  ALBTargetGroup:
+    Type: "AWS::ElasticLoadBalancingV2::TargetGroup"
+    Properties:
+      HealthCheckPath: /index.php  
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 5
+      VpcId: !ImportValue VpcId     
+      TargetGroupAttributes:
+        - Key: "stickiness.enabled"
+          Value: true
+        - Key: "stickiness.type"
+          Value: lb_cookie
+        - Key: "stickiness.lb_cookie.duration_seconds"
+          Value: 300
+
+  ALBListener:
+    Type: "AWS::ElasticLoadBalancingV2::Listener"
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref ALBTargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+Outputs:
+  WebsiteURL:
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: ApplicationLoadBalancerDNSName
+  ALBSecurityGroupGroupId:
+    Value: !GetAtt ALBSecurityGroup.GroupId
+    Export:
+      Name: ALBSecurityGroupGroupId
+  ALBTargetGroup:
+    Value: !Ref ALBTargetGroup
+    Export:
+      Name: ALBTargetGroup

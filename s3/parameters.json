@@ -1,0 +1,19 @@
+[
+  {
+    "ParameterKey":"S3BucketKeyID",
+    "ParameterValue": "ENTER YOUR S3BUKET KEY ID"
+  },
+  {
+    "ParameterKey":"S3BucketAccessKey",
+    "ParameterValue": "ENTER YOUR S3BUKET KEY"
+  },
+  {
+    "ParameterKey":"S3BucketRegion",
+    "ParameterValue": "ENTER YOUR S3BUKET REGION"
+  },
+  {
+    "ParameterKey":"S3BucketName",
+    "ParameterValue": "ENTER S3BUKET NAME"
+  }
+]
+

@@ -1,0 +1,26 @@
+[
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "YOUR KEY NAME"
+  },
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "t2.micro"
+  },
+  {
+    "ParameterKey": "GitUser",
+    "ParameterValue": "YOUR GIT USERNAME"
+  },
+  {
+    "ParameterKey": "GitEmail",
+    "ParameterValue": "YOUR GIT EMAIL"
+  },
+  {
+    "ParameterKey": "GitPassword",
+    "ParameterValue": "YOUR GIT PASSWORD"
+  },
+  {
+    "ParameterKey":"WebServerCapacity",
+    "ParameterValue": "Desired Capacity eg. 2"
+  }
+]

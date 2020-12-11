@@ -1,0 +1,11 @@
+[
+  {
+    "ParameterKey": "SSHLocation",
+    "ParameterValue": "Input SSH source IP address"
+  },
+  {
+    "ParameterKey": "HTTPLocation",
+    "ParameterValue": "Input HTTP source IP address"
+  }
+]
+  

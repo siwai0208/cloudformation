@@ -1,0 +1,22 @@
+[
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "YOUR KEY NAME"
+  },
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "Desired Instance eg. t2.micro"
+  },
+  {
+    "ParameterKey": "GitUser",
+    "ParameterValue": "YOUR GIT USERNAME"
+  },
+  {
+    "ParameterKey": "GitEmail",
+    "ParameterValue": "YOUR GIT EMAIL"
+  },
+  {
+    "ParameterKey": "GitPassword",
+    "ParameterValue": "YOUR GIT PASSWORD"
+  }
+]

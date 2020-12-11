@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "RDS"
+
+Parameters:
+  # Database
+  DBId:
+    Type: String
+  DBUser:
+    Type: String
+  DBPassword:
+    Type: String
+  DBAz:
+    Type: String
+  DBSourceIP:
+    Type: String
+  DBName:
+    Type: String
+
+Resources:
+  DBSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Enable MySQL Access"
+      VpcId: !ImportValue VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          CidrIp: !Ref DBSourceIP
+
+  DBSubnetGroup: 
+    Type: "AWS::RDS::DBSubnetGroup"
+    Properties: 
+      DBSubnetGroupName: "food-app-rds-subnet"
+      DBSubnetGroupDescription: "-"
+      SubnetIds:
+        - !ImportValue SubnetsPRV1
+        - !ImportValue SubnetsPRV2
+
+  DBInstance:
+    Type: "AWS::RDS::DBInstance"
+    Properties:
+      DBInstanceIdentifier: !Ref DBId
+      DBName: !Ref DBName
+      Engine: MySQL
+      EngineVersion: 5.7.31
+      MasterUsername: !Ref DBUser
+      MasterUserPassword: !Ref DBPassword
+      DBInstanceClass: db.t2.micro
+      AllocatedStorage: 10
+      StorageType: gp2
+      AvailabilityZone: !Ref DBAz
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VPCSecurityGroups:
+        - !Ref DBSecurityGroup
+
+Outputs:
+  DBInstanceEndpointAddress:
+    Value: !GetAtt DBInstance.Endpoint.Address
+    Export:
+      Name: DBInstanceEndpointAddress
+  DBName:
+    Value: !Ref DBName
+    Export:
+      Name: DBName
+  DBPassword:
+    Value: !Ref DBPassword
+    Export:
+      Name: DBPassword

@@ -1,0 +1,35 @@
+[
+  {
+    "ParameterKey": "KeyName",
+    "ParameterValue": "YOUR KEY NAME"
+  },
+  {
+    "ParameterKey": "InstanceType",
+    "ParameterValue": "Desired InstanceType eg. t2.micro"
+  },
+  {
+    "ParameterKey": "DBUser",
+    "ParameterValue": "MySQL DBUser"
+  },
+  {
+    "ParameterKey": "DBPassword",
+    "ParameterValue": "MySQL DBpassword"
+  },
+  {
+    "ParameterKey": "DBName",
+    "ParameterValue": "MySQL DBName"
+  },
+  {
+    "ParameterKey": "GitUser",
+    "ParameterValue": "YOUR GIT USERNAME"
+  },
+  {
+    "ParameterKey": "GitEmail",
+    "ParameterValue": "YOUR GIT EMAIL"
+  },
+  {
+    "ParameterKey": "GitPassword",
+    "ParameterValue": "YOUR GIT PASSWORD"
+  }
+]
+

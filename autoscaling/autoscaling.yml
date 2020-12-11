@@ -1,0 +1,261 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "AutoScaling"
+
+Parameters:
+  # Instance
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+  InstanceType:
+    Type: String
+    AllowedValues:
+    - t2.nano
+    - t2.micro
+    - t2.small
+    Default: t2.micro
+
+  #Git
+  GitUser:
+    Type: String
+  GitEmail:
+    Type: String
+  GitPassword:
+    Type: String
+  
+  #AutoScaling
+  WebServerCapacity:
+    Type: Number
+
+Mappings:
+  RegionMap:
+    ap-northeast-1:
+      HVM64: ami-0ce107ae7af2e92b5
+
+Resources:
+  AutoScalingSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Enable SSH and HTTP"
+      VpcId: !ImportValue VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !ImportValue ALBSecurityGroupGroupId
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: !ImportValue SSHLocation
+
+  WEBServerGroup:
+    Type: "AWS::AutoScaling::AutoScalingGroup"
+    Properties:
+      VPCZoneIdentifier: 
+        - !ImportValue SubnetsPUB1
+        - !ImportValue SubnetsPUB2
+      LaunchConfigurationName: !Ref LaunchConfig
+      MinSize: 1
+      MaxSize: 5
+      DesiredCapacity: !Ref WebServerCapacity
+      TargetGroupARNs:
+        - !ImportValue ALBTargetGroup
+  
+  LaunchConfig:
+    Type: "AWS::AutoScaling::LaunchConfiguration"
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", HVM64]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyName
+      SecurityGroups:
+        - !Ref AutoScalingSecurityGroup
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            DeleteOnTermination: true
+            VolumeSize: 8
+            VolumeType: gp2
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash -xe
+          sudo su -
+          yum update -y
+          yum install -y aws-cfn-bootstrap cloud-init aws-cli
+          /opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource LaunchConfig --region ${AWS::Region} --configsets ec2_setup
+          /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource WebServerGroup --region ${AWS::Region}
+    Metadata:
+      AWS::CloudFormation::Init:
+        configSets:
+          ec2_setup:
+            - config_cfn
+            - install_packages
+            - clone_site
+            - config_nginx_php
+            - config_env
+            - start_services
+            - phpmyadmin
+        config_cfn:
+          files:
+            "/etc/cfn/cfn-hup.conf":
+              content: !Sub |
+                [main]
+                stack=${AWS::StackId}
+                region=${AWS::Region}
+              mode: '000400'
+              owner: root
+              group: root
+            "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.LaunchConfig.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource LaunchConfig --region ${AWS::Region} --configsets ec2_setup
+                runas=root
+              mode: '000400'
+              owner: root
+              group: root
+          services:
+            sysvinit:
+              cfn-hup:
+                enabled: true
+                ensureRunning: true
+                files:
+                  - /etc/cfn/cfn-hup.conf
+                  - /etc/cfn/hooks.d/cfn-auto-reloader.conf
+        install_packages:
+          commands:
+            01-install-git:
+              command: "yum install -y git"
+            02-remove-mariadb:
+              command: "yum remove -y mariadb-libs"
+            03-install-mysql-step1:
+              command: "yum localinstall https://dev.mysql.com/get/mysql80-community-release-el7-1.noarch.rpm -y"
+            04-install-mysql-step2:
+              command: "yum-config-manager --disable mysql80-community"
+            05-install-mysql-step3:
+              command: "yum-config-manager --enable mysql57-community"
+            06-install-mysql-step4:
+              command: "yum install mysql -y"
+            07-install-nginx:
+              command: "amazon-linux-extras install nginx1"
+            08-install-php7.3:
+              command: "amazon-linux-extras install php7.3"
+            09-install-php-xml&mbstring:
+              command: "yum install -y php-xml && yum install -y php-mbstring"
+            10-install-composer:
+              command: /usr/bin/curl -s https://getcomposer.org/installer | /usr/bin/php && mv composer.phar /usr/local/bin/composer
+              env:
+                HOME: /root
+
+        clone_site:
+          commands:
+            01_git_config1:
+              cwd: /usr/share/nginx/html/
+              command: !Sub |
+                git config --global user.name "${GitUser}" && git config --global user.email ${GitEmail} && git clone https://${GitUser}:${GitPassword}@github.com/siwai0208/food-app
+              env:
+                HOME: /usr/share/nginx/html/
+            02_chown_site:
+              cwd: /usr/share/nginx/html
+              command: "chown -R ec2-user:ec2-user food-app"
+            03_chmod_site:
+              cwd: /usr/share/nginx/html/food-app
+              command: "chmod -R 777 storage && chmod -R 777 bootstrap/cache/"
+            04_composer_update:
+              cwd: /usr/share/nginx/html/food-app
+              command: "sudo -u ec2-user /usr/local/bin/composer update"
+              env:
+                HOME: /usr/share/nginx/html/food-app
+
+        config_nginx_php:
+          files:
+            /etc/nginx/conf.d/default.conf:
+              content: !Sub |
+                server {
+                    listen 80;
+                    root /usr/share/nginx/html/food-app/public;
+                    index index.php index.html index.htm;
+                    access_log /var/log/nginx/access.log;
+                    error_log /var/log/nginx/error.log;
+                    location / {
+                        try_files $uri $uri/ /index.php$is_args$args;
+                    }
+                    location ~ \.php$ {
+                        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+                        fastcgi_pass 127.0.0.1:9000;
+                        fastcgi_index index.php;
+                        include fastcgi_params;
+                        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+                        fastcgi_param PATH_INFO $fastcgi_path_info;
+                    }
+                }
+              mode: "000644"
+              owner: "root"
+              group: "root"
+            /tmp/wwwsock:
+              content: !Sub |
+                #!bin/bash -xe
+                sed -i s@'listen = /run/php-fpm/www.sock'@'listen = 127.0.0.1:9000'@g /etc/php-fpm.d/www.conf
+              mode: "000500"
+              owner: "ec2-user"
+              group: "ec2-user"
+          commands:
+            01_config_wwwsock:
+              command: "/tmp/wwwsock"
+             
+        config_env:
+          files:
+            /tmp/createenv:
+              content:
+               !Sub
+                 - |
+                   #!bin/bash -xe
+                   cd /usr/share/nginx/html/food-app
+                   cp .env.example .env
+                   sed -i s/'APP_NAME=Laravel'/'APP_NAME="Laravel sample APP"'/g .env
+                   sed -i s/'DB_PASSWORD='/'DB_PASSWORD=${DBPassword}'/g .env
+                   sed -i s/'DB_DATABASE=laravel'/'DB_DATABASE=${DBName}'/g .env
+                   sed -i s/'DB_HOST=127.0.0.1'/'DB_HOST=${DBInstanceEndpointAddress}'/g .env
+                 - DBInstanceEndpointAddress: !ImportValue DBInstanceEndpointAddress
+                   DBName: !ImportValue DBName
+                   DBPassword: !ImportValue DBPassword
+              mode: "000500"
+              owner: "ec2-user"
+              group: "ec2-user"
+          commands:
+            01_config_env:
+              command: "sudo -u ec2-user /bin/bash /tmp/createenv"
+            02_php_artisan_keygen:
+              command: "php artisan key:generate"
+              cwd: /usr/share/nginx/html/food-app
+            03_php_artisan_confcache:
+              command: "php artisan config:cache"
+              cwd: /usr/share/nginx/html/food-app
+            04_php_artisan_migrate:
+              command: "php artisan migrate"
+              cwd: /usr/share/nginx/html/food-app
+            05_php_artisan_dbseed:
+              command: "php artisan db:seed"
+              cwd: /usr/share/nginx/html/food-app
+
+        start_services:
+          commands:
+            01_start_php_fpm:
+              command: "systemctl start php-fpm.service"
+            02_start_nginx:
+              command: "systemctl start nginx.service"
+            03_onboot_php_fpm:
+              command: "systemctl enable php-fpm.service"
+            04_onboot_nginx:
+              command: "systemctl enable nginx.service"
+
+        phpmyadmin:
+          commands:
+            01_install:
+              cwd: /usr/share/nginx/html/food-app/public/
+              command: !Sub |
+                wget https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.tar.gz
+                mkdir phpMyAdmin && tar -xvzf phpMyAdmin-latest-all-languages.tar.gz -C phpMyAdmin --strip-components 1
+                rm phpMyAdmin-latest-all-languages.tar.gz
+                
+Outputs:
+  WebsiteURL:
+    Value: !ImportValue ApplicationLoadBalancerDNSName

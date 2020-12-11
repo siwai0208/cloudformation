@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "S3"
+
+Parameters:
+  #S3-Bucket
+  S3BucketKeyID:
+    Type: String
+  S3BucketAccessKey:
+    Type: String
+  S3BucketRegion:
+    Type: String
+  S3BucketName:
+    Type: String
+
+Resources: 
+  S3Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      AccessControl: Private
+      BucketName: !Ref S3BucketName
+
+  BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+        - Action: "s3:GetObject"
+          Effect: Allow
+          Resource: !Sub "arn:aws:s3:::${S3Bucket}/*"
+          Principal: "*"
+
+Outputs:
+  S3BucketKeyID:
+    Value: !Ref S3BucketKeyID
+    Export:
+      Name: S3BucketKeyID
+  S3BucketAccessKey:
+    Value: !Ref S3BucketAccessKey
+    Export:
+      Name: S3BucketAccessKey
+  S3BucketRegion:
+    Value: !Ref S3BucketRegion
+    Export:
+      Name: S3BucketRegion
+  S3BucketName:
+    Value: !Ref S3BucketName
+    Export:
+      Name: S3BucketName
