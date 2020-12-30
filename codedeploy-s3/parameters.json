@@ -1,0 +1,23 @@
+[
+  {
+    "ParameterKey": "ApplicationName",
+    "ParameterValue": "App Name"
+  },
+  {
+    "ParameterKey": "S3BucketName",
+    "ParameterValue": "S3 Bucket Name"
+  },
+  {
+    "ParameterKey": "S3BucketAccessKey",
+    "ParameterValue": "Zip file name"
+  },
+  {
+    "ParameterKey": "EC2TagKey",
+    "ParameterValue": "Name"
+  },
+  {
+    "ParameterKey": "EC2TagValue",
+    "ParameterValue": "Tag Value"
+  }
+]
+  
