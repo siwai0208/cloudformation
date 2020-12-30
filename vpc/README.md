@@ -19,4 +19,4 @@ Make New VPC, InternetGateway, and 4-subnets(2-public and 2-private in 2az)
     aws cloudformation create-stack \
     --stack-name vpc \
     --template-body file://vpc.yml \
-    --parameters file://parameters.json`
+    --parameters file://parameters.json
