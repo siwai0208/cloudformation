@@ -10,7 +10,7 @@ You have to execute [**VPC**](https://github.com/siwai0208/cloudformation/tree/m
 
 ## **How to Use**
 
-**1. Execute AWS CLI**
+**1. Run commands using the AWS CLI**
 
     aws cloudformation create-stack \
     --stack-name alb \

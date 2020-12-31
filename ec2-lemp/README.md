@@ -25,7 +25,7 @@ You have to execute [**VPC**](https://github.com/siwai0208/cloudformation/tree/m
 - GitEmail
 - GitPassword
 
-**2. Execute AWS CLI**
+**2. Run commands using the AWS CLI**
 
     aws cloudformation create-stack \
     --stack-name ec2-lemp \

@@ -23,7 +23,7 @@ You have to execute [**VPC**](https://github.com/siwai0208/cloudformation/tree/m
 - GitPassword
 - WebServerCapacity (default: 2)
 
-**2. Run commands using the AWS CLI**
+**2. Execute AWS CLI**
 
     aws cloudformation create-stack \
     --stack-name autoscaling-s3 \

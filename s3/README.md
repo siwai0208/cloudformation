@@ -13,7 +13,7 @@ Make New S3-Bucket
 - S3BucketRegion
 - S3BucketName
 
-**2. Execute AWS CLI**
+**2. Run commands using the AWS CLI**
 
     aws cloudformation create-stack \
     --stack-name s3 \

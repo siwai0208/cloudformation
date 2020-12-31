@@ -14,7 +14,7 @@ Make New VPC, InternetGateway, and 4-subnets(2-public and 2-private in 2az)
 - Private-Subnet1 (default: 10.0.8.0/24)
 - Private-Subnet2 (default: 10.0.9.0/24)
 
-**2. Execute AWS CLI**
+**2. Run commands using the AWS CLI**
 
     aws cloudformation create-stack \
     --stack-name vpc \
