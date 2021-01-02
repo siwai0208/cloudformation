@@ -1,16 +1,16 @@
-# **AutoScaling for RDS and S3 Bucket**
+# **Launch Template LEMP with Code-deploy Agent**
 
 ## **About**
 
-Make New EC2 Instanse use RDS with following packages
-- mysql-client
+Make New Amazon Linux2 Instanse with following packages
+- mysql5.7
 - nginx
 - php7.3
-- [sample-laravel-app-s3](https://github.com/siwai0208/food-app-s3)
+- Code-deploy Agent
 
 ## **Dependency**
 
-You have to execute [**VPC**](https://github.com/siwai0208/cloudformation/tree/main/vpc) and [**Security-Group**](https://github.com/siwai0208/cloudformation/tree/main/security-group) and [**S3**](https://github.com/siwai0208/cloudformation/tree/main/s3) and [**RDS**](https://github.com/siwai0208/cloudformation/tree/main/rds) and [**ALB**](https://github.com/siwai0208/cloudformation/tree/main/alb) stack before using this stack
+You have to execute [**VPC**](https://github.com/siwai0208/cloudformation/tree/main/vpc) and [**Security-Group**](https://github.com/siwai0208/cloudformation/tree/main/security-group) stack before using this stack
 
 ## **How to Use**
 
@@ -18,14 +18,14 @@ You have to execute [**VPC**](https://github.com/siwai0208/cloudformation/tree/m
 
 - KeyName
 - InstanceType
-- GitUser
-- GitEmail
-- GitPassword
-- WebServerCapacity (default: 2)
+- DBName
+- DBUser
+- DBPassword
+- EC2RoleforCodeDeployArn (arn:aws:iam::xxxxxxxxxxxx:instance-profile/EC2RoleforCodeDeploy")
 
 **2. Execute AWS CLI**
 
     aws cloudformation create-stack \
-    --stack-name autoscaling-s3 \
-    --template-body file://autoscaling-s3.yml \
+    --stack-name launch-template \
+    --template-body file://launch-template.yml \
     --parameters file://parameters.json
