@@ -18,4 +18,4 @@
 
 ### [**AutoScaling-S3**](https://github.com/siwai0208/cloudformation/tree/main/autoscaling-s3)
 
-### [**Launch-template**]()
+### [**Launch-template**](https://github.com/siwai0208/cloudformation/tree/main/launch-templete)
